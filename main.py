@@ -3,58 +3,11 @@ from PopularityRecommender import RecommendationsPopularity
 from ContentBasedRecommender import ContentBasedRecommender
 from CollaborativeFilteringRecommender import CollaborativeFilteringRecommender, CFProducts
 import streamlit as st
-from transformers import pipeline
-
-# Set up Transformers
-summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model", max_length=2048)
-qa_model = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
-analyzer = pipeline(model="roberta-large-mnli")
-
-
-# Function to set up sentiment analysis for parts of the text
-def get_sentiment(text, max_len=512, classifier=analyzer):
-    sentiment_array = []
-    counter = 0
-    for i in range(max_len, len(text), max_len):
-        sentiment = classifier(text[counter: i])
-        sentiment_array.append({sentiment[0]["label"]: round(sentiment[0]["score"], 4)})
-        counter = i
-    return sentiment_array
-
-
-def display_content_with_sentiment(text, sentiment_array, max_len=512):
-    counter, index = 0, 0
-    for i in range(max_len, len(text), max_len):
-        for sentiment in sentiment_array[index].keys():
-            if sentiment == "NEUTRAL":
-                st.markdown(
-                    f'<div><span style="border-radius: 1em 0 1em 0; text-shadow: 1px 1px 1px #fff; background-image: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(185,255,169,1) 0%, rgba(220,255,203,1) 100%, rgba(242,255,247,1) 100%);">{text[counter: i]}</span></div>',
-                    unsafe_allow_html=True)
-                break
-            elif sentiment == "ENTAILMENT":
-                st.markdown(
-                    f'<div><span style="border-radius: 1em 0 1em 0; text-shadow: 1px 1px 1px #fff; background-image: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(252,255,169,1) 0%, rgba(255,254,203,1) 100%, rgba(242,255,247,1) 100%);">{text[counter: i]}</span></div>',
-                    unsafe_allow_html=True)
-                break
-            elif sentiment == "CONTRADICTION":
-                st.markdown(
-                    f'<div><span style="border-radius: 1em 0 1em 0; text-shadow: 1px 1px 1px #fff; background-image: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(255,225,225,1) 0%, rgba(255,229,229,1) 100%, rgba(242,255,247,1) 100%);">{text[counter: i]}</span></div>',
-                    unsafe_allow_html=True)
-                break
-        counter = i
-        index += 1
-
-
-# Function to summarize the articles
-def summarize_article(text):
-    result = summarizer(text)
-    return result[0]["summary_text"]
-
 
 # Manage Popularity based Recommendations
 recommendations = RecommendationsPopularity(50)
 recommended_articles = recommendations.get_items()
-articles = pd.read_csv("/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/articles.csv")
+articles = pd.read_csv("./articles.csv")
 
 # Manage Content based Recommendations
 content_based_recommender = ContentBasedRecommender()
@@ -87,16 +40,7 @@ def view_more_button_handler(title, content):
     st.empty()
     article_title = f"#### {title}"
     article_content = content
-    sentiments = get_sentiment(article_content)
-    return article_title, article_content, sentiments
-
-
-def summary_button_handler(content):
-    st.empty()
-    article_title = f"#### Summary of the Article:"
-    article_content = summarize_article(content)
-    sentiments = get_sentiment(article_content)
-    return article_title, article_content, sentiments
+    return article_title, article_content
 
 
 def display_articles(articles, max_length, key_int, call):
@@ -141,29 +85,13 @@ def display_articles(articles, max_length, key_int, call):
         flag = 0
         with col1:
             if st.button("View More", key=f"ViewFullArticle{key_int}"):
-                article_title, article_content, sentiments = view_more_button_handler(article["title"],
-                                                                                      article["content"])
+                article_title, article_content = view_more_button_handler(article["title"],
+                                                                          article["content"])
                 flag = 1
-        with col2:
-            if st.button("View Summary", key=f"Summarize{key_int}"):
-                article_title, article_content, sentiments = summary_button_handler(article["content"])
-                flag = 2
 
         st.write(article_title)
         if flag == 1:
-            display_content_with_sentiment(article_content, sentiment_array=sentiments)
-        elif flag == 2:
             st.write(article_content)
-
-        st.markdown(f"#### Ask Questions about the article:")
-        question = st.text_input("Enter your question about the article", key=f"question{key_int}")
-        if question:
-            answer = qa_model(question=question, context=article["content"])
-            question_answer = answer["answer"]
-            st.write(f"""
-            #### Answer to the question:
-            {question_answer}
-            """)
 
         similar_article_recommendations = content_based_recommender.get_articles(article["contentId"], 3)
 
