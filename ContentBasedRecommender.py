@@ -3,8 +3,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 # Set up File Paths
-articles = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/articles.csv"
-interactions = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/users_interactions.csv"
+articles = "./articles.csv"
+interactions = "./users_interactions.csv"
 
 
 class ContentBasedRecommender:

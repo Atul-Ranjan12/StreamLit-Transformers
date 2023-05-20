@@ -6,8 +6,8 @@ from scipy.sparse.linalg import svds
 from PopularityRecommender import count_frequency
 
 # Set up File Paths
-articles = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/articles.csv"
-interactions = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/users_interactions.csv"
+articles = "./articles.csv"
+interactions = "./users_interactions.csv"
 
 
 def smooth_user_preference(x):

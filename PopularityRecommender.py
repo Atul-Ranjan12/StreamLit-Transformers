@@ -2,8 +2,8 @@ import pandas as pd
 import collections
 
 # Set up some file paths
-articles = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/articles.csv"
-interactions = "/Users/atulranjan/PycharmProjects/streamLitRecommenderSystem/users_interactions.csv"
+articles = "./articles.csv"
+interactions = "./users_interactions.csv"
 
 
 def count_frequency(arr):
